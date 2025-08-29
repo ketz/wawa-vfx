@@ -18,10 +18,10 @@ const vfxManager = new VFXManager(scene);
 // Create particle system
 const particles = new VFXParticles({
   nbParticles: 100000,
-  gravity: [0, -19.8, 0],
+  gravity: [0, -9.8, 0],
   fadeSize: [0, 0],
   fadeOpacity: [0, 0],
-  renderMode: RenderMode.Mesh,
+  renderMode: RenderMode.Billboard,
   intensity: 3,
   appearance: AppearanceMode.Circular,
 });
@@ -39,7 +39,7 @@ const emitter = new VFXEmitter(particles, {
   directionMax: [1, 1, 1],
   size: [0.01, 0.25],
   speed: [1, 12],
-  colorStart: ["white", "skyblue"],
+  colorStart: ["white", "#fc0000"],
   colorEnd: ["white", "pink"],
 });
 
