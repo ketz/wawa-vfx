@@ -31,8 +31,8 @@ vfxManager.createParticleSystem('particles', particles);
 // Create emitter
 const emitter = new VFXEmitter(particles, {
   loop: true,
-  duration: 1,
-  nbParticles: 100,
+  duration: 2,
+  nbParticles: 200,
   startPositionMin: [-0.1, -0.1, -0.1],
   startPositionMax: [0.1, 0.1, 0.1],
   directionMin: [-1, 0, -1],
