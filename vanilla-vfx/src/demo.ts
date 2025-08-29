@@ -18,7 +18,7 @@ const vfxManager = new VFXManager(scene);
 // Create particle system
 const particles = new VFXParticles({
   nbParticles: 100000,
-  gravity: [0, -19.8, 0],
+  gravity: [0, -59.8, 0],
   fadeSize: [0, 0],
   fadeOpacity: [0, 0],
   renderMode: RenderMode.Billboard,
