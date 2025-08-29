@@ -21,7 +21,7 @@ const particles = new VFXParticles({
   gravity: [0, -19.8, 0],
   fadeSize: [0, 0],
   fadeOpacity: [0, 0],
-  renderMode: RenderMode.StretchBillboard,
+  renderMode: RenderMode.Mesh,
   intensity: 3,
   appearance: AppearanceMode.Circular,
 });
