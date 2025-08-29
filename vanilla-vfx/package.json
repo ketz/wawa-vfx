@@ -1,0 +1,31 @@
+{
+  "name": "vanilla-threejs-vfx",
+  "version": "1.0.0",
+  "description": "A vanilla Three.js particle system for creating visual effects",
+  "main": "dist/vanilla-vfx.js",
+  "module": "dist/vanilla-vfx.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "threejs",
+    "particles",
+    "vfx",
+    "effects",
+    "vanilla",
+    "javascript"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "three": "^0.174.0",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.0",
+    "vite-plugin-dts": "^4.5.3"
+  },
+  "peerDependencies": {
+    "three": ">=0.159"
+  }
+}
