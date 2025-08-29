@@ -40,7 +40,7 @@ const emitter = new VFXEmitter(particles, {
   size: [0.01, 0.25],
   speed: [1, 12],
   colorStart: ["white", "#fc0000"],
-  colorEnd: ["white", "pink"],
+  colorEnd: ["white", "#333333"],
 });
 
 vfxManager.addEmitter(emitter);
