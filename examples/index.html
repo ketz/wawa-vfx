@@ -4,10 +4,172 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/favicon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VFX Engine Demo - Wawa Sensei</title>
+    <title>Vanilla Three.js VFX Examples</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #110511;
+        font-family: 'Inter', 'Arial', sans-serif;
+      }
+      
+      #controls {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        min-width: 250px;
+      }
+      
+      .control-group {
+        margin-bottom: 15px;
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #ccc;
+      }
+      
+      input, select, button {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #333;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      
+      button {
+        background: #4CAF50;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-bottom: 5px;
+      }
+      
+      button:hover {
+        background: #45a049;
+      }
+      
+      .example-button {
+        background: #2196F3;
+      }
+      
+      .example-button:hover {
+        background: #1976D2;
+      }
+      
+      .example-button.active {
+        background: #FF9800;
+      }
+      
+      .range-input {
+        display: flex;
+        gap: 10px;
+      }
+      
+      .range-input input {
+        flex: 1;
+      }
+      
+      h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #fff;
+        font-size: 16px;
+      }
+      
+      .logo {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        backdrop-filter: blur(10px);
+      }
+    </style>
   </head>
   <body>
+    <div class="logo">VFX</div>
+    <div id="controls">
+      <h3>VFX Examples</h3>
+      
+      <div class="control-group">
+        <label>Examples</label>
+        <button class="example-button active" data-example="basic">Basic Particles</button>
+        <button class="example-button" data-example="emitter">Moving Emitter</button>
+        <button class="example-button" data-example="reverse">Reverse Particles</button>
+        <button class="example-button" data-example="multiple">Multiple Emitters</button>
+        <button class="example-button" data-example="stretched">Stretched Billboard</button>
+      </div>
+      
+      <div class="control-group">
+        <label>Render Mode</label>
+        <select id="renderMode">
+          <option value="billboard">Billboard</option>
+          <option value="mesh">Mesh</option>
+          <option value="stretchBillboard">Stretch Billboard</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>Particles Per Emission</label>
+        <input type="number" id="nbParticles" value="100" min="1" max="10000">
+      </div>
+      
+      <div class="control-group">
+        <label>Intensity</label>
+        <input type="range" id="intensity" min="0.1" max="10" step="0.1" value="3">
+        <span id="intensityValue">3</span>
+      </div>
+      
+      <div class="control-group">
+        <label>Gravity Y</label>
+        <input type="range" id="gravity" min="-20" max="20" step="0.1" value="-9.8">
+        <span id="gravityValue">-9.8</span>
+      </div>
+      
+      <div class="control-group">
+        <label>Speed Range</label>
+        <div class="range-input">
+          <input type="number" id="speedMin" value="1" step="0.1" placeholder="Min">
+          <input type="number" id="speedMax" value="12" step="0.1" placeholder="Max">
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label>Size Range</label>
+        <div class="range-input">
+          <input type="number" id="sizeMin" value="0.01" step="0.01" placeholder="Min">
+          <input type="number" id="sizeMax" value="0.25" step="0.01" placeholder="Max">
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <button id="resetEmitter">Reset Emitter</button>
+        <button id="toggleEmission">Toggle Emission</button>
+      </div>
+    </div>
+    
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
