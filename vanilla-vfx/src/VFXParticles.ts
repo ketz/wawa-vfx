@@ -18,10 +18,10 @@ export type EmitCallbackSettingsFn = () => EmitCallbackSettings;
 
 export class VFXParticles {
   public mesh: THREE.InstancedMesh;
+  public settings: Required<VFXParticlesSettings>;
   private cursor: number = 0;
   private lastCursor: number = 0;
   private needsUpdate: boolean = false;
-  private settings: Required<VFXParticlesSettings>;
   private attributeArrays: {
     instanceColor: Float32Array;
     instanceColorEnd: Float32Array;
@@ -473,6 +473,27 @@ void main() {
     
     const easingIndex = easeFunctionList.indexOf(this.settings.easeFunction);
     material.uniforms.uEasingFunction.value = easingIndex;
+    
+    // Update render mode defines when settings change
+    const newDefines = {
+      STRETCH_BILLBOARD_MODE: this.settings.renderMode === RenderMode.StretchBillboard,
+      BILLBOARD_MODE: this.settings.renderMode === RenderMode.Billboard,
+      MESH_MODE: this.settings.renderMode === RenderMode.Mesh,
+    };
+    
+    // Check if defines have changed
+    let definesChanged = false;
+    for (const [key, value] of Object.entries(newDefines)) {
+      if (material.defines[key] !== value) {
+        material.defines[key] = value;
+        definesChanged = true;
+      }
+    }
+    
+    // Recompile shader if defines changed
+    if (definesChanged) {
+      material.needsUpdate = true;
+    }
   }
 
   public dispose(): void {

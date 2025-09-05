@@ -68,6 +68,60 @@ starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVer
 const stars = new THREE.Points(starsGeometry, starsMaterial);
 scene.add(stars);
 
+// Control panel elements
+const renderModeSelect = document.getElementById('renderMode') as HTMLSelectElement;
+const nbParticlesInput = document.getElementById('nbParticles') as HTMLInputElement;
+const intensityInput = document.getElementById('intensity') as HTMLInputElement;
+const gravityInput = document.getElementById('gravity') as HTMLInputElement;
+const speedMinInput = document.getElementById('speedMin') as HTMLInputElement;
+const speedMaxInput = document.getElementById('speedMax') as HTMLInputElement;
+const sizeMinInput = document.getElementById('sizeMin') as HTMLInputElement;
+const sizeMaxInput = document.getElementById('sizeMax') as HTMLInputElement;
+const resetButton = document.getElementById('resetEmitter') as HTMLButtonElement;
+const toggleButton = document.getElementById('toggleEmission') as HTMLButtonElement;
+
+// Control panel state
+let isEmitting = true;
+let controlsInitialized = false;
+
+// Update control panel with current example settings
+function updateControlPanel() {
+  if (!currentExample || controlsInitialized) return;
+  
+  const settings = currentExample.getSettings?.();
+  if (settings) {
+    if (settings.renderMode) renderModeSelect.value = settings.renderMode;
+    if (settings.nbParticles) nbParticlesInput.value = settings.nbParticles.toString();
+    if (settings.intensity) intensityInput.value = settings.intensity.toString();
+    if (settings.gravity) gravityInput.value = settings.gravity[1].toString(); // Y gravity
+    if (settings.speed) {
+      speedMinInput.value = settings.speed[0].toString();
+      speedMaxInput.value = settings.speed[1].toString();
+    }
+    if (settings.size) {
+      sizeMinInput.value = settings.size[0].toString();
+      sizeMaxInput.value = settings.size[1].toString();
+    }
+  }
+  controlsInitialized = true;
+}
+
+// Apply control panel changes to current example
+function applyControlChanges() {
+  if (!currentExample || !currentExample.updateSettings) return;
+  
+  const newSettings = {
+    renderMode: renderModeSelect.value,
+    nbParticles: parseInt(nbParticlesInput.value),
+    intensity: parseFloat(intensityInput.value),
+    gravity: [0, parseFloat(gravityInput.value), 0] as [number, number, number],
+    speed: [parseFloat(speedMinInput.value), parseFloat(speedMaxInput.value)] as [number, number],
+    size: [parseFloat(sizeMinInput.value), parseFloat(sizeMaxInput.value)] as [number, number],
+  };
+  
+  currentExample.updateSettings(newSettings);
+}
+
 // Example management
 let currentExample: any = null;
 const examples = {
@@ -84,6 +138,8 @@ const examples = {
 // Initialize with basic example
 let currentExampleKey = 'basic';
 currentExample = examples[currentExampleKey]();
+controlsInitialized = false;
+setTimeout(updateControlPanel, 100); // Allow example to initialize
 
 // Animation loop
 const clock = new THREE.Clock();
@@ -100,6 +156,11 @@ function animate() {
   // Update current example
   if (currentExample) {
     currentExample.update(deltaTime, elapsedTime);
+  }
+  
+  // Update control panel if not initialized
+  if (!controlsInitialized) {
+    updateControlPanel();
   }
   
   // Render with post-processing
@@ -138,26 +199,31 @@ exampleSelect.addEventListener('change', (event) => {
   
   currentExampleKey = newExample;
   currentExample = examples[newExample]();
+  controlsInitialized = false;
+  setTimeout(updateControlPanel, 100); // Allow new example to initialize
 });
 
-// Control handlers
-const renderModeSelect = document.getElementById('renderMode') as HTMLSelectElement;
-const nbParticlesInput = document.getElementById('nbParticles') as HTMLInputElement;
-const intensityInput = document.getElementById('intensity') as HTMLInputElement;
-const gravityInput = document.getElementById('gravity') as HTMLInputElement;
-const speedMinInput = document.getElementById('speedMin') as HTMLInputElement;
-const speedMaxInput = document.getElementById('speedMax') as HTMLInputElement;
-const sizeMinInput = document.getElementById('sizeMin') as HTMLInputElement;
-const sizeMaxInput = document.getElementById('sizeMax') as HTMLInputElement;
-const resetButton = document.getElementById('resetEmitter') as HTMLButtonElement;
-const toggleButton = document.getElementById('toggleEmission') as HTMLButtonElement;
-
-let isEmitting = true;
+// Control event listeners
+renderModeSelect.addEventListener('change', applyControlChanges);
+nbParticlesInput.addEventListener('input', applyControlChanges);
+intensityInput.addEventListener('input', applyControlChanges);
+gravityInput.addEventListener('input', applyControlChanges);
+speedMinInput.addEventListener('input', applyControlChanges);
+speedMaxInput.addEventListener('input', applyControlChanges);
+sizeMinInput.addEventListener('input', applyControlChanges);
+sizeMaxInput.addEventListener('input', applyControlChanges);
 
 resetButton.addEventListener('click', () => {
   if (currentExample) {
-    currentExample.dispose();
-    currentExample = examples[currentExampleKey]();
+    if (currentExample.reset) {
+      currentExample.reset();
+    } else {
+      // Fallback: recreate the example
+      currentExample.dispose();
+      currentExample = examples[currentExampleKey]();
+      controlsInitialized = false;
+      setTimeout(updateControlPanel, 100);
+    }
   }
 });
 
@@ -165,8 +231,13 @@ toggleButton.addEventListener('click', () => {
   isEmitting = !isEmitting;
   toggleButton.textContent = isEmitting ? 'Stop Emission' : 'Start Emission';
   
-  // Note: This is a simplified toggle - in a real implementation,
-  // you'd want to expose start/stop methods on each example
+  if (currentExample) {
+    if (isEmitting && currentExample.startEmitting) {
+      currentExample.startEmitting();
+    } else if (!isEmitting && currentExample.stopEmitting) {
+      currentExample.stopEmitting();
+    }
+  }
 });
 
 // Start animation

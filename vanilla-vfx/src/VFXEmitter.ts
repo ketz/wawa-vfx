@@ -142,15 +142,20 @@ export class VFXEmitter {
       return;
     }
 
-    if (this.emitted < this.settings.nbParticles || this.settings.loop) {
-      const particlesToEmit = this.settings.spawnMode === "burst"
-        ? this.settings.nbParticles
-        : Math.max(0, Math.floor(((this.elapsedTime - this.settings.delay) / this.settings.duration) * this.settings.nbParticles));
+    // Calculate how many particles should have been emitted by now
+    const targetEmitted = this.settings.spawnMode === "burst"
+      ? this.settings.nbParticles
+      : Math.max(
+          0,
+          Math.floor(
+            ((this.elapsedTime - this.settings.delay) / this.settings.duration) * this.settings.nbParticles
+          )
+        );
 
-      const rate = particlesToEmit - this.emitted;
+    if ((this.emitted < targetEmitted || this.settings.loop) && this.elapsedTime >= this.settings.delay) {
       
-      if (rate > 0 && this.elapsedTime >= this.settings.delay) {
-        this.object3D.updateWorldMatrix(true, true);
+      const rate = targetEmitted - this.emitted;
+      if (rate > 0) {
         const worldMatrix = this.object3D.matrixWorld;
         const worldPosition = new THREE.Vector3();
         const worldQuaternion = new THREE.Quaternion();
@@ -163,9 +168,22 @@ export class VFXEmitter {
     }
     
     this.elapsedTime += deltaTime;
+    
+    // Reset emission counter when loop completes
+    if (this.settings.loop && this.elapsedTime >= this.settings.duration + this.settings.delay) {
+      this.emitted = 0;
+      this.elapsedTime = this.settings.delay; // Reset to delay time to maintain timing
+    }
   }
 
   public updateSettings(newSettings: Partial<VFXEmitterSettings>): void {
+    const oldNbParticles = this.settings.nbParticles;
     this.settings = { ...this.settings, ...newSettings };
+    
+    // If nbParticles changed, reset emission counter to allow immediate adjustment
+    if (newSettings.nbParticles !== undefined && newSettings.nbParticles !== oldNbParticles) {
+      this.emitted = 0;
+      this.elapsedTime = 0;
+    }
   }
 }
