@@ -27,5 +27,8 @@
   },
   "peerDependencies": {
     "three": ">=0.159"
+  },
+  "dependencies": {
+    "postprocessing": "^6.37.7"
   }
 }

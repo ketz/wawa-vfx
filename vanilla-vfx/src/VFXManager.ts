@@ -47,12 +47,16 @@ export class VFXManager {
   dispose(): void {
     this.particleSystems.forEach(particles => {
       particles.dispose();
-      this.scene.remove(particles.mesh);
+      if (particles.mesh.parent) {
+        particles.mesh.parent.remove(particles.mesh);
+      }
     });
     this.particleSystems.clear();
 
     this.emitters.forEach(emitter => {
-      this.scene.remove(emitter.object3D);
+      if (emitter.object3D.parent) {
+        emitter.object3D.parent.remove(emitter.object3D);
+      }
     });
     this.emitters.length = 0;
   }

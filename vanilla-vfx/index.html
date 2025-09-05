@@ -47,6 +47,11 @@
         font-size: 14px;
       }
       
+      select option {
+        background: white;
+        color: black;
+      }
+      
       button {
         background: #4CAF50;
         cursor: pointer;
@@ -117,6 +122,20 @@
       
       <div class="control-group">
         <button id="toggleEmission">Toggle Emission</button>
+      </div>
+      
+      <div class="control-group">
+        <label>Example</label>
+        <select id="exampleSelect">
+          <option value="basic">Basic</option>
+          <option value="reverse">Reverse</option>
+          <option value="emitter">Follow Emitter</option>
+          <option value="multiple">Multiple Emitters</option>
+          <option value="alphaMap">Alpha Map</option>
+          <option value="stretched">Stretched Billboard</option>
+          <option value="fireworks">Fireworks</option>
+          <option value="customGeometry">Custom Geometry</option>
+        </select>
       </div>
     </div>
     

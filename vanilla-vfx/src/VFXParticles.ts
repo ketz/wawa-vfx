@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { AppearanceMode, RenderMode, VFXParticlesSettings, EaseFunction, easeFunctionList } from './types';
-import { easings } from './shaders/easings';
+import { easings } from './easings';
 
 export interface EmitCallbackSettings {
   position: [number, number, number];
@@ -62,17 +62,17 @@ export class VFXParticles {
     
     // Add instance attributes
     particleGeometry.setAttribute('instanceColor', 
-      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceColor, 3));
+      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceColor, 3).setUsage(THREE.DynamicDrawUsage));
     particleGeometry.setAttribute('instanceColorEnd', 
-      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceColorEnd, 3));
+      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceColorEnd, 3).setUsage(THREE.DynamicDrawUsage));
     particleGeometry.setAttribute('instanceDirection', 
-      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceDirection, 3));
+      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceDirection, 3).setUsage(THREE.DynamicDrawUsage));
     particleGeometry.setAttribute('instanceLifetime', 
-      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceLifetime, 2));
+      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceLifetime, 2).setUsage(THREE.DynamicDrawUsage));
     particleGeometry.setAttribute('instanceSpeed', 
-      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceSpeed, 1));
+      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceSpeed, 1).setUsage(THREE.DynamicDrawUsage));
     particleGeometry.setAttribute('instanceRotationSpeed', 
-      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceRotationSpeed, 3));
+      new THREE.InstancedBufferAttribute(this.attributeArrays.instanceRotationSpeed, 3).setUsage(THREE.DynamicDrawUsage));
 
     // Create material
     const material = this.createMaterial(alphaMap);
@@ -316,6 +316,7 @@ void main() {
   if (vProgress < 0.0 || vProgress > 1.0) {
     discard;
   }
+  
   vec3 finalColor = mix(vColor, vColorEnd, vProgress);
   finalColor *= uIntensity;
 
@@ -376,19 +377,19 @@ void main() {
   }
 
   public emit(count: number, setup: EmitCallbackSettingsFn): void {
-    const instanceColor = this.mesh.geometry.getAttribute("instanceColor") as THREE.BufferAttribute;
-    const instanceColorEnd = this.mesh.geometry.getAttribute("instanceColorEnd") as THREE.BufferAttribute;
-    const instanceDirection = this.mesh.geometry.getAttribute("instanceDirection") as THREE.BufferAttribute;
-    const instanceLifetime = this.mesh.geometry.getAttribute("instanceLifetime") as THREE.BufferAttribute;
-    const instanceSpeed = this.mesh.geometry.getAttribute("instanceSpeed") as THREE.BufferAttribute;
-    const instanceRotationSpeed = this.mesh.geometry.getAttribute("instanceRotationSpeed") as THREE.BufferAttribute;
-
     const tmpPosition = new THREE.Vector3();
     const tmpRotationEuler = new THREE.Euler();
     const tmpRotation = new THREE.Quaternion();
     const tmpScale = new THREE.Vector3(1, 1, 1);
     const tmpMatrix = new THREE.Matrix4();
     const tmpColor = new THREE.Color();
+
+    const instanceColor = this.mesh.geometry.getAttribute("instanceColor") as THREE.InstancedBufferAttribute;
+    const instanceColorEnd = this.mesh.geometry.getAttribute("instanceColorEnd") as THREE.InstancedBufferAttribute;
+    const instanceDirection = this.mesh.geometry.getAttribute("instanceDirection") as THREE.InstancedBufferAttribute;
+    const instanceLifetime = this.mesh.geometry.getAttribute("instanceLifetime") as THREE.InstancedBufferAttribute;
+    const instanceSpeed = this.mesh.geometry.getAttribute("instanceSpeed") as THREE.InstancedBufferAttribute;
+    const instanceRotationSpeed = this.mesh.geometry.getAttribute("instanceRotationSpeed") as THREE.InstancedBufferAttribute;
 
     for (let i = 0; i < count; i++) {
       if (this.cursor >= this.settings.nbParticles) {
@@ -421,20 +422,33 @@ void main() {
       this.mesh.setMatrixAt(this.cursor, tmpMatrix);
 
       tmpColor.set(colorStart);
-      instanceColor.setXYZ(this.cursor, tmpColor.r, tmpColor.g, tmpColor.b);
+      instanceColor.array[this.cursor * 3] = tmpColor.r;
+      instanceColor.array[this.cursor * 3 + 1] = tmpColor.g;
+      instanceColor.array[this.cursor * 3 + 2] = tmpColor.b;
       
       tmpColor.set(colorEnd);
-      instanceColorEnd.setXYZ(this.cursor, tmpColor.r, tmpColor.g, tmpColor.b);
+      instanceColorEnd.array[this.cursor * 3] = tmpColor.r;
+      instanceColorEnd.array[this.cursor * 3 + 1] = tmpColor.g;
+      instanceColorEnd.array[this.cursor * 3 + 2] = tmpColor.b;
       
-      instanceDirection.setXYZ(this.cursor, direction[0], direction[1], direction[2]);
-      instanceLifetime.setXY(this.cursor, lifetime[0], lifetime[1]);
-      instanceSpeed.setX(this.cursor, speed[0]);
-      instanceRotationSpeed.setXYZ(this.cursor, rotationSpeed[0], rotationSpeed[1], rotationSpeed[2]);
+      instanceDirection.array[this.cursor * 3] = direction[0];
+      instanceDirection.array[this.cursor * 3 + 1] = direction[1];
+      instanceDirection.array[this.cursor * 3 + 2] = direction[2];
+      
+      instanceLifetime.array[this.cursor * 2] = lifetime[0];
+      instanceLifetime.array[this.cursor * 2 + 1] = lifetime[1];
+      
+      instanceSpeed.array[this.cursor] = speed[0];
+      
+      instanceRotationSpeed.array[this.cursor * 3] = rotationSpeed[0];
+      instanceRotationSpeed.array[this.cursor * 3 + 1] = rotationSpeed[1];
+      instanceRotationSpeed.array[this.cursor * 3 + 2] = rotationSpeed[2];
       
       this.cursor++;
       this.cursor = this.cursor % this.settings.nbParticles;
     }
 
+    // Mark all attributes as needing update
     this.mesh.instanceMatrix.needsUpdate = true;
     instanceColor.needsUpdate = true;
     instanceColorEnd.needsUpdate = true;
@@ -456,6 +470,9 @@ void main() {
     material.uniforms.uFadeAlpha.value = this.settings.fadeAlpha;
     material.uniforms.uGravity.value = this.settings.gravity;
     material.uniforms.uAppearanceMode.value = this.settings.appearance;
+    
+    const easingIndex = easeFunctionList.indexOf(this.settings.easeFunction);
+    material.uniforms.uEasingFunction.value = easingIndex;
   }
 
   public dispose(): void {

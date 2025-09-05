@@ -4,7 +4,7 @@ import { VFXParticles, EmitCallbackSettingsFn } from './VFXParticles';
 
 export class VFXEmitter {
   public object3D: THREE.Object3D;
-  private settings: Required<VFXEmitterSettings>;
+  public settings: Required<VFXEmitterSettings>;
   private particleSystem: VFXParticles | null = null;
   private emitted: number = 0;
   private elapsedTime: number = 0;
@@ -87,7 +87,15 @@ export class VFXEmitter {
 
   private createParticle(worldPosition: THREE.Vector3, worldQuaternion: THREE.Quaternion): any {
     const randSize = this.randFloat(this.settings.size[0], this.settings.size[1]);
-    const color = this.settings.colorStart[this.randInt(0, this.settings.colorStart.length - 1)];
+    const colorIndex = this.randInt(0, this.settings.colorStart.length - 1);
+    const color = this.settings.colorStart[colorIndex];
+    
+    const colorEndIndex = this.settings.colorEnd.length > 0 
+      ? this.randInt(0, this.settings.colorEnd.length - 1)
+      : colorIndex;
+    const colorEnd = this.settings.colorEnd.length > 0
+      ? this.settings.colorEnd[colorEndIndex]
+      : color;
     
     const direction = new THREE.Vector3(
       this.randFloat(this.settings.directionMin[0], this.settings.directionMax[0]),
@@ -122,9 +130,7 @@ export class VFXEmitter {
         this.randFloat(this.settings.particlesLifetime[0], this.settings.particlesLifetime[1]),
       ],
       colorStart: color,
-      colorEnd: this.settings.colorEnd?.length
-        ? this.settings.colorEnd[this.randInt(0, this.settings.colorEnd.length - 1)]
-        : color,
+      colorEnd: colorEnd,
       speed: [this.randFloat(this.settings.speed[0], this.settings.speed[1])],
     };
   }
